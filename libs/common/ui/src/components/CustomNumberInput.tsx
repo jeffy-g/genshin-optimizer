@@ -1,7 +1,7 @@
 import type { ButtonProps, InputProps } from '@mui/material'
 import { Button, InputBase, styled } from '@mui/material'
 import type { ChangeEvent, KeyboardEvent } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 export type CustomNumberInputProps = Omit<InputProps, 'onChange'> & {
   value?: number | undefined
   onChange: (newValue: number | undefined) => void
@@ -12,19 +12,25 @@ export type CustomNumberInputProps = Omit<InputProps, 'onChange'> & {
 }
 
 export const StyledInputBase = styled(InputBase)(
-  ({ theme, color = 'primary' }) => ({
-    backgroundColor: theme.palette[color].main,
-    transition: 'all 0.5s ease',
-    '&:hover': {
-      backgroundColor: theme.palette[color].dark,
-    },
-    '&.Mui-focused': {
-      backgroundColor: theme.palette[color].dark,
-    },
-    '&.Mui-disabled': {
-      backgroundColor: theme.palette[color].dark,
-    },
-  })
+  ({ theme, color = 'primary' }) => {
+    const tmc = theme.palette[color]
+    return {
+      backgroundColor: tmc.main,
+      transition: 'all 0.5s ease',
+      '&:hover': {
+        backgroundColor: tmc.dark,
+      },
+      '&.Mui-focused': {
+        backgroundColor: tmc.dark,
+      },
+      '&.Mui-disabled': {
+        backgroundColor: tmc.dark,
+      },
+      '.MuiInputBase-input::selection': {
+        backgroundColor: tmc.light,
+      },
+    }
+  }
 )
 
 const Wrapper = styled(Button)(({ theme }) => ({
@@ -46,10 +52,14 @@ export function CustomNumberInputButtonGroupWrapper({
   ...props
 }: ButtonProps) {
   return (
-    <Wrapper disableRipple disableFocusRipple disableTouchRipple {...props}>
+    <Wrapper disableRipple disableFocusRipple disableTouchRipple tabIndex={-1} {...props}>
       {children}
     </Wrapper>
   )
+}
+
+function handleOnFocus(this: GlobalEventHandlers /* , e: FocusEvent */) {
+  (this as HTMLInputElement).select()
 }
 
 export function CustomNumberInput({
@@ -59,7 +69,7 @@ export function CustomNumberInput({
   float = false,
   ...props
 }: CustomNumberInputProps) {
-  const { inputProps = {}, ...restProps } = props
+  const { inputProps = {}, inputRef, ...restProps } = props
   const { min, max } = inputProps
   const [display, setDisplay] = useState(value.toString())
 
@@ -84,7 +94,12 @@ export function CustomNumberInput({
     return change(newNum)
   }, [min, max, parseFunc, onChange, display])
 
-  useEffect(() => setDisplay(value.toString()), [value, setDisplay]) // update value on value change
+  useEffect(() => {
+    setDisplay(value.toString())
+    if (inputRef && (inputRef as any).current) {
+      (inputRef as any).current.onfocus = disabled ? null : handleOnFocus
+    }
+  }, [value, setDisplay, disabled, inputRef]) // update value on value change
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -94,6 +109,7 @@ export function CustomNumberInput({
 
   return (
     <StyledInputBase
+      inputRef={inputRef}
       value={display}
       aria-label="custom-input"
       type="number"

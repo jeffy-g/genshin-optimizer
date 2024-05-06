@@ -31,7 +31,7 @@ import {
   Slider,
   Typography,
 } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { PercentBadge } from '../../PercentBadge'
 import { ArtifactStatWithUnit } from '../ArtifactStatKeyDisplay'
@@ -89,6 +89,13 @@ export function SubstatInput({
     [key, rarity]
   )
 
+  const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  useEffect(() => {
+    if (ref.current && key) {
+      ref.current.focus()
+    }
+  }, [value, key])
+
   return (
     <CardThemed bgt="light">
       <Box sx={{ display: 'flex' }}>
@@ -133,6 +140,7 @@ export function SubstatInput({
             sx={{ flexBasis: 30, flexGrow: 1 }}
           >
             <CustomNumberInput
+              inputRef={ref}
               float={unit === '%'}
               placeholder={t`editor.substat.selectSub`}
               value={key ? value : undefined}
