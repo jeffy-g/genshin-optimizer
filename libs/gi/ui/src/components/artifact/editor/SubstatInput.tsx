@@ -31,7 +31,7 @@ import {
   Slider,
   Typography,
 } from '@mui/material'
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { PercentBadge } from '../../PercentBadge'
 import { ArtifactStatWithUnit } from '../ArtifactStatKeyDisplay'
